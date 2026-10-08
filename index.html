@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="theme-color" content="#f3f5f0">
+	<title>AIDEMEDGOV | Government Health Supply</title>
+	<style>
+		:root {
+			color-scheme: light;
+			--ink: #1d2924;
+			--muted: #718078;
+			--line: #e2e8e2;
+			--paper: #ffffff;
+			--canvas: #f3f5f0;
+			--green: #245c45;
+			--green-dark: #174331;
+			--green-soft: #e7f1e9;
+			--lime: #d8ed79;
+			--orange: #b96536;
+			--orange-soft: #fbefe5;
+			--red: #b74c43;
+			--red-soft: #faeae7;
+			--gold: #a77b24;
+			--gold-soft: #f7f0db;
+			--shadow: 0 2px 9px rgba(28, 53, 39, .035);
+			font-family: "Segoe UI", "Aptos", sans-serif;
+		}
+		* { box-sizing: border-box; }
+		body { margin: 0; background: var(--canvas); color: var(--ink); font-size: 14px; }
+		button, input, select { font: inherit; }
+		button { cursor: pointer; }
+		.shell { min-height: 100vh; }
+		.sidebar {
+			position: fixed; inset: 0 auto 0 0; z-index: 5; width: 242px; padding: 24px 16px 18px;
+			display: flex; flex-direction: column; color: #ecf4ed; background: var(--green-dark);
+		}
+		.brand { display: flex; align-items: center; gap: 11px; padding: 0 8px 27px; }
+		.brand-mark { width: 36px; height: 36px; display: grid; place-items: center; color: var(--green-dark); background: var(--lime); border-radius: 9px; }
+		.brand-mark svg { width: 21px; height: 21px; }
+		.brand-name { font-size: 15px; line-height: 1.1; font-weight: 750; letter-spacing: .5px; }
+		.brand-sub { margin-top: 4px; color: #a9c1b2; font-size: 10px; letter-spacing: .7px; text-transform: uppercase; }
+		.nav-label { padding: 10px 10px 8px; color: #87a493; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; }
+		.nav { display: grid; gap: 4px; }
+		.nav a { display: flex; align-items: center; gap: 12px; min-height: 42px; padding: 0 11px; color: #c5d5ca; border-radius: 5px; text-decoration: none; font-size: 13px; transition: background .16s, color .16s; }
+		.nav a:hover, .nav a.active { color: white; background: rgba(255,255,255,.12); }
+		.nav a.active { box-shadow: inset 3px 0 var(--lime); }
+		.nav svg { width: 17px; height: 17px; flex: 0 0 auto; stroke: currentColor; }
+		.nav-count { margin-left: auto; min-width: 20px; padding: 3px 5px; color: #ffe5d4; background: rgba(224,123,81,.22); border-radius: 10px; font-size: 10px; text-align: center; }
+		.sidebar-bottom { margin-top: auto; padding: 14px 10px 0; border-top: 1px solid rgba(255,255,255,.13); }
+		.agency { color: #d9e4dc; font-size: 11px; line-height: 1.55; }
+		.agency span { display: block; color: #91ad9b; font-size: 10px; }
+		.main { margin-left: 242px; min-height: 100vh; }
+		.topbar { height: 68px; padding: 0 34px; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,.84); border-bottom: 1px solid var(--line); }
+		.crumb { color: var(--muted); font-size: 12px; }
+		.crumb strong { color: #405047; font-weight: 600; }
+		.top-right { display: flex; align-items: center; gap: 17px; }
+		.sync { display: flex; align-items: center; gap: 7px; color: #607168; font-size: 11px; }
+		.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #4a9a65; box-shadow: 0 0 0 3px #e3f1e5; }
+		.user-block { display: flex; align-items: center; gap: 9px; padding-left: 16px; border-left: 1px solid var(--line); }
+		.avatar { width: 31px; height: 31px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: #9c6546; font-size: 11px; font-weight: 700; }
+		.user-name { color: #334139; font-size: 11px; font-weight: 650; }
+		.user-role { margin-top: 2px; color: var(--muted); font-size: 10px; }
+		.content { max-width: 1530px; margin: auto; padding: 29px 34px 44px; }
+		.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 22px; }
+		.eyebrow { color: var(--green); font-size: 10px; font-weight: 750; letter-spacing: 1.4px; text-transform: uppercase; }
+		h1 { margin: 6px 0 0; font-size: 26px; font-weight: 650; letter-spacing: -.35px; }
+		.subtitle { margin-top: 5px; color: var(--muted); font-size: 12px; }
+		.head-actions { display: flex; align-items: center; gap: 9px; }
+		.select-control, .button { min-height: 36px; border: 1px solid #dce4dc; border-radius: 4px; color: #35443b; background: #fff; }
+		.select-control { padding: 0 29px 0 11px; font-size: 11px; }
+		.button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 12px; font-size: 11px; font-weight: 650; transition: background .15s, border-color .15s; }
+		.button:hover { background: #f6f8f4; border-color: #b9c9bc; }
+		.button svg { width: 14px; height: 14px; stroke: currentColor; }
+		.button.primary { color: #fff; background: var(--green); border-color: var(--green); }
+		.button.primary:hover { background: #1c4d38; }
+		.report-stamp { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 16px; color: #718078; font-size: 10px; }
+		.report-stamp svg { width: 13px; height: 13px; }
+		.metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 13px; margin-bottom: 18px; }
+		.metric { position: relative; min-height: 122px; padding: 15px 16px; overflow: hidden; background: var(--paper); border: 1px solid var(--line); border-radius: 5px; box-shadow: var(--shadow); }
+		.metric::after { position: absolute; content: ""; width: 76px; height: 76px; top: -28px; right: -21px; border-radius: 50%; background: var(--green-soft); }
+		.metric.warning::after { background: var(--orange-soft); }
+		.metric.danger::after { background: var(--red-soft); }
+		.metric-label { position: relative; z-index: 1; color: #637269; font-size: 11px; }
+		.metric-value { margin-top: 11px; font-size: 27px; line-height: 1; font-weight: 700; letter-spacing: -.5px; }
+		.metric-foot { display: flex; align-items: center; gap: 5px; margin-top: 9px; color: #7b8981; font-size: 10px; }
+		.metric-foot .up { color: var(--green); font-weight: 700; }
+		.metric-foot .down { color: var(--red); font-weight: 700; }
+		.metric-mark { position: absolute; top: 15px; right: 15px; z-index: 1; width: 16px; height: 16px; color: var(--green); }
+		.metric.warning .metric-mark { color: var(--orange); }
+		.metric.danger .metric-mark { color: var(--red); }
+		.grid-main { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(270px, .9fr); gap: 15px; margin-bottom: 15px; }
+		.panel { min-width: 0; background: var(--paper); border: 1px solid var(--line); border-radius: 5px; box-shadow: var(--shadow); }
+		.panel-head { min-height: 61px; padding: 14px 17px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid #edf0ec; }
+		.panel-title { margin: 0; font-size: 13px; font-weight: 700; }
+		.panel-subtitle { margin-top: 4px; color: var(--muted); font-size: 10px; }
+		.period-label { padding: 6px 8px; color: #59695f; background: #f3f6f1; border-radius: 3px; font-size: 10px; }
+		.chart-wrap { padding: 10px 17px 13px; }
+		.chart-legend { display: flex; justify-content: flex-end; gap: 16px; margin: 1px 5px 4px; color: #68766e; font-size: 10px; }
+		.legend-item { display: flex; align-items: center; gap: 6px; }
+		.legend-dot { width: 8px; height: 8px; border-radius: 2px; background: var(--green); }
+		.legend-dot.secondary { background: #d8e6ca; }
+		.chart { width: 100%; height: 211px; display: block; overflow: visible; }
+		.chart text { fill: #7b8980; font: 10px "Segoe UI", sans-serif; }
+		.chart .gridline { stroke: #edf1ed; stroke-width: 1; }
+		.chart .axis { stroke: #dce4dc; stroke-width: 1; }
+		.chart .bar-use { fill: #286348; }
+		.chart .bar-received { fill: #dbe8d1; }
+		.chart .trend { fill: none; stroke: #bd7548; stroke-width: 2; stroke-dasharray: 4 4; }
+		.chart circle { fill: #bd7548; stroke: white; stroke-width: 2; }
+		.mix-body { padding: 15px 17px 17px; }
+		.mix-total { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 15px; }
+		.mix-total strong { font-size: 24px; }
+		.mix-total span { color: var(--muted); font-size: 10px; }
+		.mix-bar { height: 8px; display: flex; overflow: hidden; border-radius: 5px; background: #edf1ec; }
+		.mix-bar i { display: block; height: 100%; }
+		.mix-rows { display: grid; gap: 13px; margin-top: 17px; }
+		.mix-row { display: grid; grid-template-columns: 10px 1fr auto; align-items: center; gap: 8px; }
+		.mix-swatch { width: 8px; height: 8px; border-radius: 2px; }
+		.mix-name { color: #536259; font-size: 10px; }
+		.mix-amount { color: #334139; font-size: 10px; font-weight: 650; }
+		.alerts-panel { margin-bottom: 15px; }
+		.alert-summary { display: flex; align-items: center; gap: 7px; color: var(--red); font-size: 10px; font-weight: 650; }
+		.alert-summary .alert-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--red); }
+		.alerts-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+		.alert-item { min-height: 103px; padding: 14px 16px; display: grid; grid-template-columns: 31px 1fr; gap: 10px; border-right: 1px solid #edf0ec; }
+		.alert-item:last-child { border-right: 0; }
+		.alert-icon { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 4px; color: var(--red); background: var(--red-soft); }
+		.alert-icon.amber { color: var(--orange); background: var(--orange-soft); }
+		.alert-icon.gold { color: var(--gold); background: var(--gold-soft); }
+		.alert-icon svg { width: 16px; height: 16px; }
+		.alert-topline { display: flex; align-items: center; justify-content: space-between; gap: 5px; }
+		.alert-title { font-size: 11px; font-weight: 700; }
+		.alert-count { color: var(--red); font-size: 10px; font-weight: 700; white-space: nowrap; }
+		.alert-desc { margin-top: 5px; color: #69776e; font-size: 10px; line-height: 1.5; }
+		.alert-link { display: inline-block; margin-top: 7px; color: var(--green); font-size: 10px; font-weight: 700; text-decoration: none; }
+		.inventory-panel { margin-bottom: 15px; }
+		.inventory-tools { display: flex; align-items: center; gap: 8px; }
+		.search { width: 195px; height: 32px; padding: 0 9px; border: 1px solid #e0e6e0; border-radius: 4px; outline: none; color: var(--ink); font-size: 10px; }
+		.search:focus, .select-control:focus { border-color: #7da18a; outline: 2px solid rgba(68,130,88,.12); }
+		.search::placeholder { color: #9aa69e; }
+		.filter { height: 32px; padding: 0 23px 0 8px; border: 1px solid #e0e6e0; border-radius: 4px; color: #536259; background: #fff; font-size: 10px; }
+		.table-scroll { overflow-x: auto; }
+		table { width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap; }
+		th { padding: 10px 16px; color: #829087; background: #fafbf9; font-size: 9px; font-weight: 650; letter-spacing: .45px; text-transform: uppercase; }
+		td { padding: 11px 16px; border-top: 1px solid #edf0ec; color: #4e5b53; font-size: 10px; }
+		tbody tr:hover { background: #fbfcfa; }
+		.medicine-name { color: #28372f; font-size: 11px; font-weight: 650; }
+		.medicine-sub { margin-top: 3px; color: #89958d; font-size: 9px; }
+		.stock-number { color: #2e3b33; font-weight: 650; }
+		.status { display: inline-flex; align-items: center; gap: 5px; padding: 4px 7px; border-radius: 3px; font-size: 9px; font-weight: 650; }
+		.status::before { width: 5px; height: 5px; content: ""; border-radius: 50%; background: currentColor; }
+		.status.available { color: #367450; background: var(--green-soft); }
+		.status.low { color: #a75c32; background: var(--orange-soft); }
+		.status.expired { color: #a84941; background: var(--red-soft); }
+		.table-foot { min-height: 38px; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; color: #849088; border-top: 1px solid #edf0ec; font-size: 9px; }
+		.bottom-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(270px, .85fr); gap: 15px; }
+		.trend-body { padding: 13px 17px 16px; }
+		.trend-row { display: grid; grid-template-columns: minmax(100px, 1fr) 2fr 60px; align-items: center; gap: 12px; margin: 12px 0; }
+		.trend-name { color: #516057; font-size: 10px; }
+		.trend-track { height: 7px; overflow: hidden; border-radius: 5px; background: #edf1ec; }
+		.trend-fill { height: 100%; border-radius: 5px; background: var(--green); }
+		.trend-fill.orange { background: #cf8556; }
+		.trend-fill.gold { background: #c6a24f; }
+		.trend-value { color: #3e4c43; font-size: 10px; font-weight: 650; text-align: right; }
+		.trend-note { margin-top: 13px; padding-top: 11px; color: #748179; border-top: 1px solid #edf0ec; font-size: 9px; }
+		.report-list { padding: 3px 16px; }
+		.report-row { min-height: 53px; display: flex; justify-content: space-between; align-items: center; gap: 10px; border-bottom: 1px solid #edf0ec; }
+		.report-row:last-child { border-bottom: 0; }
+		.report-info { display: flex; align-items: center; gap: 9px; }
+		.report-file { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 4px; color: var(--green); background: var(--green-soft); }
+		.report-file svg { width: 14px; height: 14px; }
+		.report-name { color: #35433a; font-size: 10px; font-weight: 650; }
+		.report-meta { margin-top: 3px; color: #89958d; font-size: 9px; }
+		.download-link { padding: 5px; color: var(--green); border: 0; background: transparent; }
+		.download-link svg { width: 15px; height: 15px; stroke: currentColor; }
+		.footer { padding-top: 18px; color: #8b978f; font-size: 9px; text-align: center; }
+		.empty-state { padding: 20px; color: var(--muted); text-align: center; font-size: 11px; }
+		@media (max-width: 1120px) {
+			.sidebar { width: 208px; }
+			.main { margin-left: 208px; }
+			.content { padding-right: 23px; padding-left: 23px; }
+			.topbar { padding: 0 23px; }
+			.grid-main { grid-template-columns: minmax(0, 1.4fr) minmax(240px, .8fr); }
+			.alert-item { padding: 12px; }
+		}
+		@media (max-width: 800px) {
+			.sidebar { position: sticky; top: 0; width: 100%; height: auto; padding: 10px 14px; flex-direction: row; align-items: center; gap: 14px; }
+			.brand { flex: 0 0 auto; padding: 0; }
+			.brand-mark { width: 32px; height: 32px; }
+			.brand-sub, .nav-label, .sidebar-bottom { display: none; }
+			.nav { display: flex; gap: 3px; margin-left: auto; overflow-x: auto; }
+			.nav a { min-height: 36px; padding: 0 9px; gap: 7px; font-size: 11px; white-space: nowrap; }
+			.nav a.active { box-shadow: inset 0 -2px var(--lime); }
+			.nav svg { width: 15px; height: 15px; }
+			.nav-count { min-width: 17px; padding: 2px 4px; }
+			.main { margin-left: 0; }
+			.topbar { height: 52px; padding: 0 18px; }
+			.content { padding: 22px 18px 34px; }
+		}
+		@media (max-width: 620px) {
+			.user-name, .user-role, .sync { display: none; }
+			.user-block { padding-left: 11px; }
+			.topbar { height: 47px; }
+			.content { padding: 19px 12px 28px; }
+			.page-head { align-items: flex-start; flex-direction: column; gap: 13px; }
+			h1 { font-size: 23px; }
+			.head-actions { width: 100%; }
+			.head-actions .select-control { flex: 1; }
+			.metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+			.metric { min-height: 111px; padding: 12px; }
+			.metric-value { font-size: 24px; }
+			.grid-main, .bottom-grid { grid-template-columns: 1fr; gap: 10px; }
+			.alerts-list { grid-template-columns: 1fr; }
+			.alert-item { min-height: auto; padding: 12px 14px; border-right: 0; border-bottom: 1px solid #edf0ec; }
+			.alert-item:last-child { border-bottom: 0; }
+			.panel-head { padding: 12px 13px; }
+			.inventory-tools { width: 100%; }
+			.search { min-width: 0; flex: 1; }
+			.filter { max-width: 125px; }
+			#inventory .panel-head { align-items: flex-start; flex-direction: column; }
+			th, td { padding: 10px 12px; }
+			.chart { height: 190px; }
+			.trend-row { grid-template-columns: 100px 1fr 48px; gap: 8px; }
+		}
+		@media (max-width: 390px) {
+			.brand-name { font-size: 13px; }
+			.nav a { padding: 0 7px; }
+			.nav a span.nav-text { display: none; }
+			.top-right { gap: 5px; }
+			.metric-foot { font-size: 9px; }
+		}
+	</style>
+</head>
+<body>
+	<div class="shell">
+		<aside class="sidebar" aria-label="Main navigation">
+			<div class="brand">
+				<div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
+				<div><div class="brand-name">AIDEMEDGOV</div><div class="brand-sub">Public health supply</div></div>
+			</div>
+			<div class="nav-label">Operations</div>
+			<nav class="nav">
+				<a class="active" href="#overview" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><rect x="3" y="3" width="7" height="8" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="15" width="7" height="6" rx="1"/></svg><span class="nav-text">Overview</span></a>
+				<a href="#inventory"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.5 7.8 7.5 4.3 7.5-4.3M12 12v9"/></svg><span class="nav-text">Inventory</span></a>
+				<a href="#reports"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg><span class="nav-text">Reports</span></a>
+				<a href="#alerts"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="nav-text">Alerts</span><span class="nav-count">17</span></a>
+			</nav>
+			<div class="sidebar-bottom"><div class="agency">Department of Health<span>Regional Supply Coordination Office</span></div></div>
+		</aside>
+
+		<main class="main">
+			<header class="topbar">
+				<div class="crumb">Operations <span aria-hidden="true">/</span> <strong>Regional dashboard</strong></div>
+				<div class="top-right"><div class="sync"><span class="sync-dot"></span>Data synced 08:42 AM</div><div class="user-block"><div class="avatar">AR</div><div><div class="user-name">A. Reyes</div><div class="user-role">Regional administrator</div></div></div></div>
+			</header>
+			<div class="content" id="overview">
+				<div class="page-head">
+					<div><div class="eyebrow">Government supply intelligence</div><h1>Regional medicine dashboard</h1><div class="subtitle">Monitor consumption, availability, and distribution across public health facilities.</div></div>
+					<div class="head-actions">
+						<button class="button" id="exportButton" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v4h14v-4"/></svg>Export report</button>
+					</div>
+				</div>
+				<div class="report-stamp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 9h18"/></svg><span id="reportDate">Reporting period: October 2026</span><span>·</span><span>Updated today</span></div>
+
+				<section class="metrics" aria-label="Regional medicine supply summary">
+					<article class="metric"><svg class="metric-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5m0 14h17M7 15l4-4 3 2 6-7"/></svg><div class="metric-label">Medicine units on hand</div><div class="metric-value">128,460</div><div class="metric-foot"><span class="up">↑ 4.8%</span> vs. previous month</div></article>
+					<article class="metric"><svg class="metric-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5m0 14h17M7 15l4-4 3 2 6-7"/></svg><div class="metric-label">Facilities reporting</div><div class="metric-value">94<span style="font-size:14px;color:#79867e;font-weight:550"> / 102</span></div><div class="metric-foot"><span class="up">92%</span> reporting compliance</div></article>
+					<article class="metric warning"><svg class="metric-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 2.8 20h18.4L12 3Z"/><path d="M12 9v5m0 3h.01"/></svg><div class="metric-label">Items below reorder level</div><div class="metric-value">31</div><div class="metric-foot"><span class="down">9 critical</span> across 14 facilities</div></article>
+					<article class="metric danger"><svg class="metric-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><div class="metric-label">Expired / expiring in 30 days</div><div class="metric-value">17</div><div class="metric-foot">4 lots already expired</div></article>
+				</section>
+
+				<section class="grid-main" aria-label="Consumption reports">
+					<article class="panel">
+						<div class="panel-head"><div><h2 class="panel-title">Monthly medicine consumption</h2><div class="panel-subtitle">Units dispensed against replenishment received</div></div><span class="period-label">Jan – Jun 2026</span></div>
+						<div class="chart-wrap">
+							<div class="chart-legend"><span class="legend-item"><i class="legend-dot"></i>Consumed</span><span class="legend-item"><i class="legend-dot secondary"></i>Received</span><span class="legend-item"><i class="legend-dot" style="background:#bd7548;border-radius:50%"></i>Monthly target</span></div>
+							<svg class="chart" viewBox="0 0 620 230" role="img" aria-label="Bar chart of monthly medicine consumption and replenishment from January to June 2026">
+								<line class="gridline" x1="54" y1="25" x2="606" y2="25"/><line class="gridline" x1="54" y1="67" x2="606" y2="67"/><line class="gridline" x1="54" y1="109" x2="606" y2="109"/><line class="gridline" x1="54" y1="151" x2="606" y2="151"/><line class="axis" x1="54" y1="193" x2="606" y2="193"/>
+								<text x="6" y="29">30k</text><text x="6" y="71">22.5k</text><text x="12" y="113">15k</text><text x="12" y="155">7.5k</text><text x="29" y="197">0</text>
+								<g><rect class="bar-received" x="92" y="86" width="20" height="107" rx="2"/><rect class="bar-use" x="115" y="98" width="20" height="95" rx="2"/><text x="96" y="214">Jan</text></g>
+								<g><rect class="bar-received" x="181" y="76" width="20" height="117" rx="2"/><rect class="bar-use" x="204" y="91" width="20" height="102" rx="2"/><text x="185" y="214">Feb</text></g>
+								<g><rect class="bar-received" x="270" y="95" width="20" height="98" rx="2"/><rect class="bar-use" x="293" y="81" width="20" height="112" rx="2"/><text x="274" y="214">Mar</text></g>
+								<g><rect class="bar-received" x="359" y="63" width="20" height="130" rx="2"/><rect class="bar-use" x="382" y="74" width="20" height="119" rx="2"/><text x="363" y="214">Apr</text></g>
+								<g><rect class="bar-received" x="448" y="90" width="20" height="103" rx="2"/><rect class="bar-use" x="471" y="66" width="20" height="127" rx="2"/><text x="452" y="214">May</text></g>
+								<g><rect class="bar-received" x="537" y="54" width="20" height="139" rx="2"/><rect class="bar-use" x="560" y="70" width="20" height="123" rx="2"/><text x="541" y="214">Jun</text></g>
+								<path class="trend" d="M125 81 L214 76 L303 70 L392 66 L481 62 L570 57"/><circle cx="125" cy="81" r="4"/><circle cx="214" cy="76" r="4"/><circle cx="303" cy="70" r="4"/><circle cx="392" cy="66" r="4"/><circle cx="481" cy="62" r="4"/><circle cx="570" cy="57" r="4"/>
+							</svg>
+						</div>
+					</article>
+					<article class="panel">
+						<div class="panel-head"><div><h2 class="panel-title">Consumption by category</h2><div class="panel-subtitle">Share of units dispensed this month</div></div><span class="period-label">October</span></div>
+						<div class="mix-body">
+							<div class="mix-total"><strong>24,860</strong><span>units dispensed</span></div>
+							<div class="mix-bar" aria-label="Category distribution"><i style="width:34%;background:#245c45"></i><i style="width:26%;background:#739a6a"></i><i style="width:19%;background:#bf8a4c"></i><i style="width:13%;background:#8daeb0"></i><i style="width:8%;background:#d7ddd4"></i></div>
+							<div class="mix-rows">
+								<div class="mix-row"><i class="mix-swatch" style="background:#245c45"></i><span class="mix-name">Essential medicines</span><span class="mix-amount">8,452 · 34%</span></div>
+								<div class="mix-row"><i class="mix-swatch" style="background:#739a6a"></i><span class="mix-name">Antibiotics</span><span class="mix-amount">6,464 · 26%</span></div>
+								<div class="mix-row"><i class="mix-swatch" style="background:#bf8a4c"></i><span class="mix-name">Maternal &amp; child health</span><span class="mix-amount">4,723 · 19%</span></div>
+								<div class="mix-row"><i class="mix-swatch" style="background:#8daeb0"></i><span class="mix-name">Chronic care</span><span class="mix-amount">3,232 · 13%</span></div>
+								<div class="mix-row"><i class="mix-swatch" style="background:#d7ddd4"></i><span class="mix-name">Other</span><span class="mix-amount">1,989 · 8%</span></div>
+							</div>
+						</div>
+					</article>
+				</section>
+
+				<section class="panel alerts-panel" id="alerts">
+					<div class="panel-head"><div><h2 class="panel-title">Priority alerts</h2><div class="panel-subtitle">Items requiring regional follow-up</div></div><div class="alert-summary"><i class="alert-dot"></i>17 open alerts</div></div>
+					<div class="alerts-list">
+						<article class="alert-item"><div class="alert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 2.8 20h18.4L12 3Z"/><path d="M12 9v5m0 3h.01"/></svg></div><div><div class="alert-topline"><span class="alert-title">Expired medicine lots</span><span class="alert-count">4 lots</span></div><div class="alert-desc">Quarantine and disposal confirmation required from 3 facilities.</div><a class="alert-link" href="#inventory" data-filter="Expired">Review expired stock →</a></div></article>
+						<article class="alert-item"><div class="alert-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5m0 14h17M7 15l4-4 3 2 6-7"/></svg></div><div><div class="alert-topline"><span class="alert-title">Below reorder threshold</span><span class="alert-count" style="color:#ad6135">9 critical</span></div><div class="alert-desc">Amoxicillin, ORS, and 7 other items projected under 14 days.</div><a class="alert-link" href="#inventory" data-filter="Low stock">View replenishment list →</a></div></article>
+						<article class="alert-item"><div class="alert-icon gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div><div class="alert-topline"><span class="alert-title">Expiring within 30 days</span><span class="alert-count" style="color:#a77b24">13 lots</span></div><div class="alert-desc">Estimated value ₱84,200. Redistribution window is still open.</div><a class="alert-link" href="#inventory" data-filter="Expiring">Plan redistribution →</a></div></article>
+					</div>
+				</section>
+
+				<section class="panel inventory-panel" id="inventory">
+					  <div class="panel-head"><div><h2 class="panel-title">Stock watchlist</h2><div class="panel-subtitle">High-priority medicines across reporting facilities</div></div><div class="inventory-tools"><input class="search" id="searchInput" type="search" placeholder="Search medicine or facility" aria-label="Search medicine or facility"><select class="filter" id="districtFilter" aria-label="Filter inventory by district"><option value="All">All districts</option><option>North District</option><option>Central District</option><option>South District</option></select><select class="filter" id="statusFilter" aria-label="Filter by stock status"><option value="All">All status</option><option value="Available">Available</option><option value="Low stock">Low stock</option><option value="Expired">Expired</option><option value="Expiring">Expiring soon</option></select></div></div>
+					<div class="table-scroll"><table><thead><tr><th>Medicine / formulation</th><th>Facility</th><th>On hand</th><th>Monthly use</th><th>Coverage</th><th>Status</th><th>Expiry / review</th></tr></thead><tbody id="inventoryBody"></tbody></table></div>
+					<div class="table-foot"><span id="tableCount">Showing 8 priority items</span><span>Source: Facility inventory submissions</span></div>
+				</section>
+
+				<section class="bottom-grid" id="reports">
+					<article class="panel">
+						<div class="panel-head"><div><h2 class="panel-title">Demand trend watch</h2><div class="panel-subtitle">Change in consumption vs. prior 3-month average</div></div><span class="period-label">October 2026</span></div>
+						<div class="trend-body">
+							<div class="trend-row"><span class="trend-name">Amoxicillin 500mg</span><div class="trend-track"><div class="trend-fill orange" style="width:86%"></div></div><span class="trend-value">+24.6%</span></div>
+							<div class="trend-row"><span class="trend-name">Oral rehydration salts</span><div class="trend-track"><div class="trend-fill orange" style="width:68%"></div></div><span class="trend-value">+18.2%</span></div>
+							<div class="trend-row"><span class="trend-name">Salbutamol nebules</span><div class="trend-track"><div class="trend-fill gold" style="width:47%"></div></div><span class="trend-value">+11.5%</span></div>
+							<div class="trend-row"><span class="trend-name">Amlodipine 5mg</span><div class="trend-track"><div class="trend-fill" style="width:18%"></div></div><span class="trend-value">+4.1%</span></div>
+							<div class="trend-note">Rising demand may affect forecasted coverage. Review procurement quantities for the next allocation cycle.</div>
+						</div>
+					</article>
+					<article class="panel">
+						<div class="panel-head"><div><h2 class="panel-title">Monthly reports</h2><div class="panel-subtitle">Regional summaries ready for export</div></div><span class="period-label">2026</span></div>
+						<div class="report-list">
+							<div class="report-row"><div class="report-info"><div class="report-file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg></div><div><div class="report-name">October consumption report</div><div class="report-meta">Dispensed, received, and adjustments</div></div></div><button class="download-link" data-report="consumption" aria-label="Download October consumption report"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v4h14v-4"/></svg></button></div>
+							<div class="report-row"><div class="report-info"><div class="report-file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg></div><div><div class="report-name">Stock status &amp; reorder report</div><div class="report-meta">Critical and below-threshold items</div></div></div><button class="download-link" data-report="stock" aria-label="Download stock status report"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v4h14v-4"/></svg></button></div>
+							<div class="report-row"><div class="report-info"><div class="report-file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg></div><div><div class="report-name">Expiry &amp; wastage report</div><div class="report-meta">Expired and near-expiry lots</div></div></div><button class="download-link" data-report="expiry" aria-label="Download expiry report"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v4h14v-4"/></svg></button></div>
+						</div>
+					</article>
+				</section>
+				<footer class="footer">AIDEMEDGOV · Regional medicine supply coordination · Reporting data for operational planning</footer>
+			</div>
+		</main>
+	</div>
+	<script>
+		const stockItems = [
+			{ name: 'Amoxicillin', form: '500 mg capsule · 1,000 units / carton', facility: 'San Isidro District Hospital', district: 'North District', onHand: 420, monthly: 1860, days: 7, status: 'Low stock', expiry: '2026-12-18' },
+			{ name: 'Oral rehydration salts', form: 'WHO formula · 20.5 g sachet', facility: 'Riverside Health Center', district: 'Central District', onHand: 860, monthly: 3100, days: 8, status: 'Low stock', expiry: '2027-01-05' },
+			{ name: 'Paracetamol', form: '500 mg tablet · 1,000 units / box', facility: 'Central Provincial Hospital', district: 'Central District', onHand: 12400, monthly: 7900, days: 47, status: 'Available', expiry: '2027-03-30' },
+			{ name: 'Insulin human', form: '100 IU/mL · 10 mL vial', facility: 'North District Hospital', district: 'North District', onHand: 112, monthly: 240, days: 14, status: 'Low stock', expiry: '2026-11-12' },
+			{ name: 'Cotrimoxazole', form: '800 mg / 160 mg tablet', facility: 'San Isidro District Hospital', district: 'North District', onHand: 0, monthly: 520, days: 0, status: 'Expired', expiry: '2026-10-02' },
+			{ name: 'Amlodipine', form: '5 mg tablet · 1,000 units / box', facility: 'South District Infirmary', district: 'South District', onHand: 3680, monthly: 1120, days: 99, status: 'Available', expiry: '2026-11-03' },
+			{ name: 'Salbutamol nebules', form: '2.5 mg / 2.5 mL · unit dose', facility: 'Riverside Health Center', district: 'Central District', onHand: 280, monthly: 640, days: 13, status: 'Low stock', expiry: '2027-02-14' },
+			{ name: 'Vitamin A', form: '200,000 IU softgel capsule', facility: 'Eastside Community Clinic', district: 'South District', onHand: 680, monthly: 190, days: 107, status: 'Expiring', expiry: '2026-10-21' }
+		];
+		const inventoryBody = document.querySelector('#inventoryBody');
+		const searchInput = document.querySelector('#searchInput');
+		const statusFilter = document.querySelector('#statusFilter');
+		const districtFilter = document.querySelector('#districtFilter');
+
+		function renderInventory() {
+			const search = searchInput.value.trim().toLowerCase();
+			const status = statusFilter.value;
+			const district = districtFilter.value;
+			const filtered = stockItems.filter(item => {
+				const matchesSearch = `${item.name} ${item.form} ${item.facility}`.toLowerCase().includes(search);
+				const matchesStatus = status === 'All' || item.status === status;
+				const matchesDistrict = district === 'All' || item.district === district;
+				return matchesSearch && matchesStatus && matchesDistrict;
+			});
+			inventoryBody.innerHTML = filtered.length ? filtered.map(item => {
+				const badgeStatus = item.status === 'Available' ? 'available' : item.status === 'Expired' ? 'expired' : 'low';
+				const cover = item.days === 0 ? 'Out of stock' : `${item.days} days`;
+				return `<tr><td><div class="medicine-name">${item.name}</div><div class="medicine-sub">${item.form}</div></td><td>${item.facility}</td><td><span class="stock-number">${item.onHand.toLocaleString()}</span> units</td><td>${item.monthly.toLocaleString()} units</td><td>${cover}</td><td><span class="status ${badgeStatus}">${item.status === 'Expiring' ? 'Expiring soon' : item.status}</span></td><td>${item.expiry}</td></tr>`;
+			}).join('') : '<tr><td colspan="7" class="empty-state">No medicines match these filters.</td></tr>';
+			document.querySelector('#tableCount').textContent = `Showing ${filtered.length} of ${stockItems.length} priority items · ${district === 'All' ? 'all districts' : district}`;
+		}
+		function downloadCsv(filename, rows) {
+			const csv = rows.map(row => row.map(value => `"${String(value).replaceAll('"', '""')}"`).join(',')).join('\r\n');
+			const link = document.createElement('a');
+			link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+			link.download = filename;
+			link.click();
+			URL.revokeObjectURL(link.href);
+		}
+		function exportInventory() {
+			const rows = [['Medicine', 'Formulation', 'Facility', 'On hand (units)', 'Monthly use (units)', 'Coverage (days)', 'Status', 'Expiry / review']];
+			stockItems.forEach(item => rows.push([item.name, item.form, item.facility, item.onHand, item.monthly, item.days, item.status, item.expiry]));
+			downloadCsv('regional-medicine-inventory-october-2026.csv', rows);
+		}
+		searchInput.addEventListener('input', renderInventory);
+		statusFilter.addEventListener('change', renderInventory);
+		districtFilter.addEventListener('change', renderInventory);
+		document.querySelector('#exportButton').addEventListener('click', exportInventory);
+		document.querySelectorAll('[data-filter]').forEach(link => link.addEventListener('click', () => {
+			statusFilter.value = link.dataset.filter;
+			renderInventory();
+		}));
+		document.querySelectorAll('[data-report]').forEach(button => button.addEventListener('click', () => {
+			const reportType = button.dataset.report;
+			let rows;
+			if (reportType === 'consumption') {
+				rows = [['Month', 'Consumed units', 'Received units'], ['January 2026', 16960, 19100], ['February 2026', 18240, 20900], ['March 2026', 20000, 17500], ['April 2026', 21250, 23200], ['May 2026', 22680, 18400], ['June 2026', 22000, 24800]];
+			} else if (reportType === 'stock') {
+				rows = [['Medicine', 'Facility', 'On hand', 'Monthly use', 'Coverage days', 'Status'], ...stockItems.filter(item => item.status === 'Low stock' || item.status === 'Expired').map(item => [item.name, item.facility, item.onHand, item.monthly, item.days, item.status])];
+			} else {
+				rows = [['Medicine', 'Facility', 'Expiry / review', 'Status'], ...stockItems.filter(item => item.status === 'Expired' || item.status === 'Expiring').map(item => [item.name, item.facility, item.expiry, item.status])];
+			}
+			downloadCsv(`regional-${reportType}-report-october-2026.csv`, rows);
+		}));
+		document.querySelectorAll('.nav a').forEach(link => link.addEventListener('click', () => {
+			document.querySelectorAll('.nav a').forEach(item => { item.classList.remove('active'); item.removeAttribute('aria-current'); });
+			link.classList.add('active');
+			link.setAttribute('aria-current', 'page');
+		}));
+		renderInventory();
+	</script>
+</body>
+</html>
